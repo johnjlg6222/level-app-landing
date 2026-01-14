@@ -119,15 +119,15 @@ export default function CalculatorPage() {
 
       {/* Progress indicator */}
       {!isSubmitted && (
-        <div className="fixed top-16 md:top-20 left-0 right-0 z-40 px-6">
-          <div className="max-w-md mx-auto">
+        <div className="fixed top-14 md:top-[72px] left-0 right-0 z-40 px-4 py-2">
+          <div className="max-w-md mx-auto bg-[#0F1115]/80 backdrop-blur-md rounded-full px-4 py-2 border border-white/5">
             <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
           </div>
         </div>
       )}
 
       {/* Main content */}
-      <main className="relative z-10 pt-28 md:pt-32 pb-32 px-4">
+      <main className="relative z-10 pt-32 md:pt-36 pb-32 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-[#0F1115]/60 backdrop-blur-md rounded-3xl border border-white/5 min-h-[600px] flex flex-col">
             {/* Step content */}
