@@ -74,7 +74,6 @@ export const FeaturesStep: React.FC<FeaturesStepProps> = ({ value, onToggle }) =
                   {isSelected && <Check className="text-blue-500" size={16} />}
                 </div>
                 <p className="text-sm text-gray-500 mt-1">{feature.description}</p>
-                <p className="text-xs text-blue-400 mt-2">+{feature.price.toLocaleString()} €</p>
               </div>
             </motion.button>
           );

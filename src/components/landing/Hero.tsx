@@ -23,7 +23,7 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
 
 export const Hero: React.FC = () => {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-12 overflow-hidden z-10 px-4">
+    <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-12 overflow-hidden z-10 px-4">
       <div className="relative max-w-5xl mx-auto text-center z-10">
         <Reveal>
           <motion.div
@@ -35,9 +35,9 @@ export const Hero: React.FC = () => {
           </motion.div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight mb-6 leading-[1.1]">
-            We build mobile apps that <br />
+            Nous créons des apps mobiles qui <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-200 to-blue-500">
-              level up your business.
+              boostent votre business.
             </span>
           </h1>
 
@@ -68,9 +68,9 @@ export const Hero: React.FC = () => {
         </Reveal>
 
         {/* 3D Dynamic Floating Interface */}
-        <Reveal delay={0.2} className="w-full mt-24">
+        <Reveal delay={0.2} className="w-full mt-24 overflow-hidden">
           <div
-            className="relative w-full mx-auto h-[400px] md:h-[500px]"
+            className="relative w-full mx-auto h-[400px] md:h-[500px] overflow-hidden"
             style={{ perspective: '1200px' }}
           >
             <motion.div
@@ -170,9 +170,14 @@ export const Hero: React.FC = () => {
 
               {/* Floating Mobile Preview */}
               <motion.div
-                animate={{ y: [-20, 10, -20], rotateY: [0, 5, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-                className="absolute -left-6 md:-left-16 bottom-10 w-40 md:w-56 h-72 md:h-96 bg-[#050507] border border-white/20 rounded-[2.5rem] p-3 shadow-2xl z-40 hidden sm:block"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: [-20, 10, -20], rotateY: [0, 5, 0] }}
+                transition={{
+                  opacity: { duration: 1.2, delay: 1.5, ease: 'easeOut' },
+                  y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 },
+                  rotateY: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }
+                }}
+                className="absolute -left-6 md:-left-16 bottom-10 w-40 md:w-56 h-72 md:h-96 bg-[#050507] border border-white/20 rounded-[2.5rem] p-3 shadow-2xl z-0 hidden sm:block"
               >
                 <div className="w-full h-full bg-[#151820] rounded-[2rem] overflow-hidden relative border border-white/5">
                   <div className="absolute top-0 inset-x-0 h-6 bg-black z-10 mx-auto w-24 rounded-b-xl" />

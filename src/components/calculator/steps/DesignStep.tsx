@@ -14,7 +14,7 @@ export const DesignStep: React.FC<DesignStepProps> = ({ value, onChange }) => {
   const styleOptions: SelectOption<DesignStyle>[] = DESIGN_STYLE_OPTIONS.map((opt) => ({
     value: opt.id,
     label: opt.label,
-    description: `${opt.description}${opt.priceModifier > 0 ? ` (+${opt.priceModifier.toLocaleString()} €)` : ''}`,
+    description: opt.description,
   }));
 
   const handleStyleChange = (style: DesignStyle) => {

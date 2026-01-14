@@ -184,8 +184,8 @@ export default function CalculatorPage() {
         </div>
       </main>
 
-      {/* Price preview (fixed bottom) */}
-      {!isSubmitted && currentStep > 0 && (
+      {/* Price preview (fixed bottom) - only show after contact step */}
+      {!isSubmitted && currentStep >= 7 && (
         <motion.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
