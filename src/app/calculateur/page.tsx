@@ -1,13 +1,12 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { useCalculatorState, useLeadSubmission, usePriceCalculation } from '@/hooks';
 import { ProgressIndicator, Button } from '@/components/common';
-import { AmbientBackground, MouseSpotlight } from '@/components/landing';
+import { AmbientBackground, MouseSpotlight, Navigation } from '@/components/landing';
 import {
   ScreensStep,
   AppTypeStep,
@@ -115,29 +114,20 @@ export default function CalculatorPage() {
       <MouseSpotlight />
       <AmbientBackground />
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-          >
-            <Home size={18} />
-            <span className="hidden sm:inline">Retour</span>
-          </Link>
+      {/* Navigation */}
+      <Navigation currentSection="calculator" />
 
-          {!isSubmitted && (
-            <div className="flex-1 max-w-md mx-4">
-              <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
-            </div>
-          )}
-
-          <div className="w-20" /> {/* Spacer for alignment */}
+      {/* Progress indicator */}
+      {!isSubmitted && (
+        <div className="fixed top-16 md:top-20 left-0 right-0 z-40 px-6">
+          <div className="max-w-md mx-auto">
+            <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+          </div>
         </div>
-      </header>
+      )}
 
       {/* Main content */}
-      <main className="relative z-10 pt-24 pb-32 px-4">
+      <main className="relative z-10 pt-28 md:pt-32 pb-32 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-[#0F1115]/60 backdrop-blur-md rounded-3xl border border-white/5 min-h-[600px] flex flex-col">
             {/* Step content */}
