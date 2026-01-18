@@ -3,3 +3,4 @@ export { useCalculatorState, type UseCalculatorStateReturn } from './useCalculat
 export { useLeadSubmission, type UseLeadSubmissionReturn } from './useLeadSubmission';
 export { usePriceCalculation, type UsePriceCalculationReturn } from './usePriceCalculation';
 export { useQuoteForm, type QuoteFormState } from './useQuoteForm';
+export { useActiveSection } from './useActiveSection';

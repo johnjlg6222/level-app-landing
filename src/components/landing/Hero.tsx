@@ -16,6 +16,7 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
     viewport={{ once: true, margin: '-50px' }}
     transition={{ duration: 0.6, delay, ease: 'easeOut' }}
     className={className}
+    style={{ willChange: 'transform, opacity' }}
   >
     {children}
   </motion.div>
@@ -23,7 +24,7 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
 
 export const Hero: React.FC = () => {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-12 overflow-hidden z-10 px-4">
+    <section id="home" className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-12 overflow-hidden z-10 px-4">
       <div className="relative max-w-5xl mx-auto text-center z-10">
         <Reveal>
           <motion.div
@@ -47,13 +48,23 @@ export const Hero: React.FC = () => {
             Nous transformons des idées en applications prêtes à scaler.
           </p>
 
+          {/* Credibility Badge */}
+          <div className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              50+ applications livrées
+            </span>
+            <span className="text-gray-700">|</span>
+            <span>Livraison en 30 jours</span>
+          </div>
+
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 href="/calculateur"
                 className="px-8 py-4 rounded-full bg-white text-black font-bold text-lg hover:bg-gray-200 transition-colors shadow-lg shadow-white/10 flex items-center gap-2"
               >
-                💰 Estimer mon projet
+                Estimer mon projet
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -61,7 +72,7 @@ export const Hero: React.FC = () => {
                 href="/#contact"
                 className="px-8 py-4 rounded-full border border-white/20 bg-transparent text-white font-medium text-lg hover:bg-white/5 transition-colors flex items-center gap-2"
               >
-                📞 Réserver un appel
+                Réserver un appel
               </Link>
             </motion.div>
           </div>
@@ -83,11 +94,10 @@ export const Hero: React.FC = () => {
               {/* GLOW BEHIND */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-blue-600/20 blur-[100px] -z-10 rounded-full" />
 
-              {/* Main Interface Layer */}
-              <motion.div
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute inset-x-4 md:inset-x-12 top-0 bottom-12 bg-[#0F1115]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col z-10"
+              {/* Main Interface Layer - CSS animation for better scroll perf */}
+              <div
+                className="absolute inset-x-4 md:inset-x-12 top-0 bottom-12 bg-[#0F1115]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col z-10 animate-hero-float-1"
+                style={{ willChange: 'transform' }}
               >
                 {/* Fake Browser Header */}
                 <div className="h-10 border-b border-white/5 bg-white/5 flex items-center px-4 gap-2">
@@ -166,18 +176,15 @@ export const Hero: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
-              {/* Floating Mobile Preview */}
+              {/* Floating Mobile Preview - CSS animation for better scroll perf */}
               <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: [-20, 10, -20], rotateY: [0, 5, 0] }}
-                transition={{
-                  opacity: { duration: 1.2, delay: 1.5, ease: 'easeOut' },
-                  y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 },
-                  rotateY: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }
-                }}
-                className="absolute -left-6 md:-left-16 bottom-10 w-40 md:w-56 h-72 md:h-96 bg-[#050507] border border-white/20 rounded-[2.5rem] p-3 shadow-2xl z-0 hidden sm:block"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1.2, delay: 1.5, ease: 'easeOut' }}
+                className="absolute -left-6 md:-left-16 bottom-10 w-40 md:w-56 h-72 md:h-96 bg-[#050507] border border-white/20 rounded-[2.5rem] p-3 shadow-2xl z-0 hidden sm:block animate-hero-float-2"
+                style={{ willChange: 'transform' }}
               >
                 <div className="w-full h-full bg-[#151820] rounded-[2rem] overflow-hidden relative border border-white/5">
                   <div className="absolute top-0 inset-x-0 h-6 bg-black z-10 mx-auto w-24 rounded-b-xl" />
@@ -197,11 +204,10 @@ export const Hero: React.FC = () => {
                 </div>
               </motion.div>
 
-              {/* Floating Revenue Card */}
-              <motion.div
-                animate={{ y: [20, -10, 20], rotateZ: [-2, 2, -2] }}
-                transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-                className="absolute -right-4 md:-right-8 top-16 md:top-24 w-64 bg-[#1A1D24]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl z-50"
+              {/* Floating Revenue Card - CSS animation for better scroll perf */}
+              <div
+                className="absolute -right-4 md:-right-8 top-16 md:top-24 w-64 bg-[#1A1D24]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl z-50 animate-hero-float-3"
+                style={{ willChange: 'transform' }}
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -228,7 +234,7 @@ export const Hero: React.FC = () => {
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
           </div>
         </Reveal>

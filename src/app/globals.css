@@ -113,3 +113,85 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* GPU-accelerated ambient blob animations */
+@keyframes ambient-blob-1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate3d(50px, 0, 0) scale(1.2);
+    opacity: 0.5;
+  }
+}
+
+@keyframes ambient-blob-2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translate3d(0, -50px, 0) scale(1.3);
+    opacity: 0.4;
+  }
+}
+
+.animate-ambient-blob-1 {
+  animation: ambient-blob-1 10s ease-in-out infinite;
+}
+
+.animate-ambient-blob-2 {
+  animation: ambient-blob-2 12s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* Hero floating element animations - GPU-accelerated */
+@keyframes hero-float-1 {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -15px, 0); }
+}
+
+@keyframes hero-float-2 {
+  0%, 100% { transform: translate3d(0, -20px, 0) rotateY(0deg); }
+  50% { transform: translate3d(0, 10px, 0) rotateY(5deg); }
+}
+
+@keyframes hero-float-3 {
+  0%, 100% { transform: translate3d(0, 20px, 0) rotate(-2deg); }
+  50% { transform: translate3d(0, -10px, 0) rotate(2deg); }
+}
+
+.animate-hero-float-1 {
+  animation: hero-float-1 8s ease-in-out infinite;
+}
+
+.animate-hero-float-2 {
+  animation: hero-float-2 6s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.animate-hero-float-3 {
+  animation: hero-float-3 7s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* Marquee animation for logos banner */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Counter animation for stats */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-count-up {
+  animation: count-up 0.6s ease-out forwards;
+}

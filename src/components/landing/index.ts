@@ -7,3 +7,7 @@ export { ProjectsSection } from './ProjectsSection';
 export { FAQSection } from './FAQSection';
 export { ContactSection } from './ContactSection';
 export { Footer } from './Footer';
+export { LogosBanner } from './LogosBanner';
+export { StatsSection } from './StatsSection';
+export { TestimonialsSection } from './TestimonialsSection';
+export { AboutSection } from './AboutSection';
