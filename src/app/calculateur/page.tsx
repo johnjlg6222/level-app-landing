@@ -16,7 +16,6 @@ import {
   DesignStep,
   ContactStep,
   PriceStep,
-  BookingStep,
   ConfirmationStep,
 } from '@/components/calculator/steps';
 import { stepVariants } from '@/utils/animations';
@@ -59,8 +58,8 @@ export default function CalculatorPage() {
       }
     }
 
-    // Mark as submitted when leaving booking step
-    if (currentStepId === 'booking') {
+    // Mark as submitted when leaving price step
+    if (currentStepId === 'price') {
       setIsSubmitted(true);
     }
 
@@ -92,9 +91,7 @@ export default function CalculatorPage() {
       case 'contact':
         return <ContactStep value={state.contact} onChange={setContact} />;
       case 'price':
-        return <PriceStep price={price} deliveryWeeks={deliveryWeeks} />;
-      case 'booking':
-        return <BookingStep value={state.booking} onChange={setBooking} />;
+        return <PriceStep price={price} deliveryWeeks={deliveryWeeks} booking={state.booking} onBookingChange={setBooking} />;
       default:
         return null;
     }
@@ -104,8 +101,7 @@ export default function CalculatorPage() {
   const getNextButtonText = () => {
     if (isSubmitting) return 'Envoi en cours...';
     if (currentStepId === 'contact') return 'Voir mon estimation';
-    if (currentStepId === 'price') return 'Continuer';
-    if (currentStepId === 'booking') return 'Terminer';
+    if (currentStepId === 'price') return 'Terminer';
     return 'Suivant';
   };
 
@@ -114,12 +110,17 @@ export default function CalculatorPage() {
       <MouseSpotlight />
       <AmbientBackground />
 
-      {/* Navigation */}
-      <Navigation currentSection="calculator" />
+      {/* Navigation with inline progress on desktop */}
+      <Navigation
+        currentSection="calculator"
+        progressIndicator={!isSubmitted ? (
+          <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+        ) : undefined}
+      />
 
-      {/* Progress indicator */}
+      {/* Progress indicator - mobile only */}
       {!isSubmitted && (
-        <div className="fixed top-14 md:top-[72px] left-0 right-0 z-40 px-4 py-2">
+        <div className="fixed top-14 left-0 right-0 z-40 px-4 py-2 md:hidden">
           <div className="max-w-md mx-auto bg-[#0F1115]/80 backdrop-blur-md rounded-full px-4 py-2 border border-white/5">
             <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
           </div>

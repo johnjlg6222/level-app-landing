@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
 const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: string }> = ({
@@ -15,6 +15,7 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
     viewport={{ once: true, margin: '-50px' }}
     transition={{ duration: 0.6, delay, ease: 'easeOut' }}
     className={className}
+    style={{ willChange: 'transform, opacity' }}
   >
     {children}
   </motion.div>
@@ -22,20 +23,40 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
 
 const faqs = [
   {
-    q: '💰 Combien coûte le développement ?',
-    a: 'Le budget démarre à partir de 2 000 € HT pour un MVP. Une estimation précise est fournie après le premier appel.',
+    q: "💰 Combien coûte le développement d'une application ?",
+    a: "Le budget démarre à partir de 2 000 € pour un MVP avec un périmètre défini. Le coût final dépend des fonctionnalités, du design et de la complexité du projet. Une estimation claire est fournie avant tout engagement.",
   },
   {
-    q: '⏱️ Quel est le délai de livraison ?',
-    a: 'La majorité des projets sont livrés en 30 jours (4 semaines) pour une V1 fonctionnelle.',
+    q: "⏱️ En combien de temps mon application est-elle développée ?",
+    a: "La majorité des projets sont livrés en 30 jours, une fois le périmètre validé. Les applications plus complexes peuvent évoluer par itérations successives.",
   },
   {
-    q: '🔒 Mon projet est-il confidentiel ?',
-    a: "Absolument. Nous signons systématiquement un accord de confidentialité (NDA) avant de commencer.",
+    q: "📱 L'application sera-t-elle disponible sur l'App Store et Google Play ?",
+    a: "Oui, si vous le souhaitez. Nous développons aussi des applications privées, non listées sur les stores, pour des projets internes, confidentiels ou en phase de test.",
   },
   {
-    q: '🧩 Puis-je commencer petit ?',
-    a: "Oui, c'est notre philosophie. Commencer par un MVP (Minimum Viable Product) et itérer.",
+    q: "🤔 Je n'ai pas de connaissances techniques, est-ce un problème ?",
+    a: "Absolument pas. Level App vous accompagne de la définition du projet jusqu'à la livraison. Vous n'avez pas besoin d'être développeur pour lancer une application.",
+  },
+  {
+    q: "🧩 Puis-je commencer avec un MVP et faire évoluer l'app ensuite ?",
+    a: "Oui, c'est même notre approche recommandée. Nous construisons une première version utile et fonctionnelle, puis faisons évoluer l'application selon vos retours et objectifs.",
+  },
+  {
+    q: "🔒 Mon projet est-il confidentiel ?",
+    a: "Oui. Tous les projets sont traités avec confidentialité, et peuvent être couverts par un accord de confidentialité si nécessaire.",
+  },
+  {
+    q: "🧠 Travaillez-vous uniquement sur des apps grand public ?",
+    a: "Non. Nous développons aussi bien des applications B2B, des apps métiers, que des applications grand public avec abonnement.",
+  },
+  {
+    q: "🚀 Que se passe-t-il après la livraison ?",
+    a: "Vous êtes libre : d'utiliser l'application telle quelle, de la faire évoluer avec Level App, ou de poursuivre le développement à votre rythme. Aucune dépendance imposée.",
+  },
+  {
+    q: "📞 Comment démarrer un projet ?",
+    a: "Il suffit de réserver un appel gratuit. Nous échangeons sur votre idée, votre besoin et votre budget, puis vous recevez une proposition claire.",
   },
 ];
 
@@ -62,20 +83,17 @@ export const FAQSection: React.FC = () => {
                     className={`text-gray-500 transition-transform duration-300 ${openIndex === idx ? 'rotate-180' : ''}`}
                   />
                 </button>
-                <AnimatePresence>
-                  {openIndex === idx && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-6 text-gray-400 text-sm leading-relaxed border-t border-white/5 pt-4">
-                        {faq.a}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Grid-based accordion for GPU-accelerated animation */}
+                <div
+                  className="grid transition-[grid-template-rows] duration-300 ease-out"
+                  style={{ gridTemplateRows: openIndex === idx ? '1fr' : '0fr' }}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-6 text-gray-400 text-sm leading-relaxed border-t border-white/5 pt-4">
+                      {faq.a}
+                    </div>
+                  </div>
+                </div>
               </div>
             </Reveal>
           ))}

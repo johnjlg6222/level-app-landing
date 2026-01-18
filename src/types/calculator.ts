@@ -8,7 +8,6 @@ export type CalculatorStep =
   | 'design'
   | 'contact'
   | 'price'
-  | 'booking'
   | 'confirmation';
 
 export interface StepDefinition {
@@ -27,8 +26,7 @@ export const CALCULATOR_STEPS: StepDefinition[] = [
   { id: 'design', title: 'Design', description: 'Préférences de design', order: 5 },
   { id: 'contact', title: 'Contact', description: 'Vos coordonnées', order: 6 },
   { id: 'price', title: 'Estimation', description: 'Votre estimation personnalisée', order: 7 },
-  { id: 'booking', title: 'Rendez-vous', description: 'Réservez un appel', order: 8 },
-  { id: 'confirmation', title: 'Confirmation', description: 'Confirmation de votre demande', order: 9 },
+  { id: 'confirmation', title: 'Confirmation', description: 'Confirmation de votre demande', order: 8 },
 ];
 
 // App type options

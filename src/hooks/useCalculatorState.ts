@@ -177,8 +177,6 @@ export function useCalculatorState(): UseCalculatorStateReturn {
           );
         case 'price':
           return true; // Display only
-        case 'booking':
-          return true; // Optional step
         default:
           return true;
       }

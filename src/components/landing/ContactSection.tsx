@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Check, Clock } from 'lucide-react';
+import { Check, Clock } from 'lucide-react';
 
 const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: string }> = ({
   children,
@@ -15,6 +15,7 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
     viewport={{ once: true, margin: '-50px' }}
     transition={{ duration: 0.6, delay, ease: 'easeOut' }}
     className={className}
+    style={{ willChange: 'transform, opacity' }}
   >
     {children}
   </motion.div>
@@ -22,6 +23,28 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
 
 export const ContactSection: React.FC = () => {
   const [formState, setFormState] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const scriptLoaded = useRef(false);
+
+  // Load iClosed script
+  useEffect(() => {
+    if (scriptLoaded.current) return;
+
+    const existingScript = document.querySelector(
+      'script[src="https://app.iclosed.io/assets/widget.js"]'
+    );
+    if (existingScript) {
+      scriptLoaded.current = true;
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://app.iclosed.io/assets/widget.js';
+    script.async = true;
+    script.onload = () => {
+      scriptLoaded.current = true;
+    };
+    document.body.appendChild(script);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,22 +116,13 @@ export const ContactSection: React.FC = () => {
           </Reveal>
 
           <Reveal delay={0.2}>
-            <div className="h-full min-h-[500px] bg-[#0F1115]/60 backdrop-blur-md rounded-3xl border border-white/10 flex flex-col items-center justify-center text-center p-8 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-blue-500/5 mix-blend-overlay group-hover:bg-blue-500/10 transition-colors" />
-              <div className="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-500 mb-6">
-                <Calendar size={40} />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Agenda Level App</h3>
-              <p className="text-gray-400 mb-8 max-w-xs">
-                Sélectionnez un créneau pour un appel de découverte de 15 min.
-              </p>
-
-              <a
-                href="#"
-                className="px-8 py-3 border border-white/20 rounded-full text-white hover:bg-white/10 transition-colors"
-              >
-                Ouvrir le calendrier
-              </a>
+            <div className="h-full min-h-[400px] bg-[#0F1115]/60 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden">
+              <div
+                className="iclosed-widget w-full h-full"
+                data-url="https://app.iclosed.io/e/levelapp/meeting-estimation"
+                title="Meeting estimation"
+                style={{ width: '100%', height: '100%', minHeight: '400px' }}
+              />
             </div>
           </Reveal>
         </div>
