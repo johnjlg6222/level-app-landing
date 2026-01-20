@@ -103,8 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sign in with email/password
   const signIn = async (email: string, password: string) => {
+    // Normalize inputs for comparison
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPassword = password.trim();
+
     // Check for admin bypass credentials first
-    if (email === ADMIN_BYPASS_EMAIL && password === ADMIN_BYPASS_PASSWORD) {
+    if (normalizedEmail === ADMIN_BYPASS_EMAIL && normalizedPassword === ADMIN_BYPASS_PASSWORD) {
       const bypassUser = createBypassAdminUser();
       setUser(bypassUser);
       setIsAdmin(true);
