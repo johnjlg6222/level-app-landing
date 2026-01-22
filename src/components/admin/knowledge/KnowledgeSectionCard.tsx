@@ -12,7 +12,7 @@ import {
   History,
   Plus,
 } from 'lucide-react';
-import type { KnowledgeEntry, KnowledgeSection, KnowledgeDocument } from '@/types/knowledge';
+import type { KnowledgeEntry, KnowledgeSection, KnowledgeDocument, KnowledgeContent } from '@/types/knowledge';
 import { KNOWLEDGE_SECTIONS } from '@/types/knowledge';
 import { RichTextEditor } from './RichTextEditor';
 import { DocumentUploader } from './DocumentUploader';
@@ -86,7 +86,7 @@ function contentToHtml(content: unknown): string {
 }
 
 // Convert HTML back to structured content (simplified - stores as text)
-function htmlToContent(html: string, section: KnowledgeSection): unknown {
+function htmlToContent(html: string, section: KnowledgeSection): KnowledgeContent {
   // For custom_context, store as text
   if (section === 'custom_context') {
     // Strip HTML tags for plain text storage
@@ -97,21 +97,21 @@ function htmlToContent(html: string, section: KnowledgeSection): unknown {
       .replace(/&nbsp;/g, ' ')
       .trim();
 
-    return { text };
+    return { text } as KnowledgeContent;
   }
 
   // For other sections, try to preserve JSON structure if it looks like JSON
   const stripped = html.replace(/<[^>]+>/g, '').trim();
   if (stripped.startsWith('{') || stripped.startsWith('[')) {
     try {
-      return JSON.parse(stripped);
+      return JSON.parse(stripped) as KnowledgeContent;
     } catch {
       // Fall through
     }
   }
 
   // Store as text in the appropriate structure
-  return { text: stripped };
+  return { text: stripped } as KnowledgeContent;
 }
 
 export function KnowledgeSectionCard({ entry, onUpdate }: KnowledgeSectionCardProps) {
