@@ -3,3 +3,5 @@ export * from './calculator';
 export * from './pricing';
 export * from './leads';
 export * from './shared';
+export * from './chat';
+export * from './knowledge';

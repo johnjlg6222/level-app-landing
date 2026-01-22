@@ -71,6 +71,22 @@ export type Tables = {
     utm_medium: string | null;
     utm_campaign: string | null;
   };
+  chatbot_knowledge: {
+    id: string;
+    section: string;
+    title: string;
+    content: Record<string, unknown>;
+    is_active: boolean;
+    priority: number;
+    created_at: string;
+    updated_at: string;
+  };
+  chatbot_config: {
+    id: string;
+    key: string;
+    value: Record<string, unknown>;
+    updated_at: string;
+  };
   quotes: {
     id: string;
     created_at: string;

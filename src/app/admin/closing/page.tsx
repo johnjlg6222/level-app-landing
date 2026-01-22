@@ -37,6 +37,7 @@ import { useQuoteForm } from '@/hooks';
 import { Button, Card, Input, Textarea, Badge } from '@/components/common';
 import { AmbientBackground } from '@/components/landing';
 import { ProtectedRoute } from '@/components/admin/ProtectedRoute';
+import { ChatWidget } from '@/components/chat';
 import { BASE_PLANS, PACKS, URGENCY_OPTIONS, MAINTENANCE_OPTIONS, CLIENT_SECTORS, PROJECT_TYPES, TARGET_USERS_OPTIONS } from '@/types/pricing';
 import { formatCurrency } from '@/utils/formatters';
 import { downloadQuotePDF, downloadTechSpecPDF } from '@/lib/pdf-generator';
@@ -900,6 +901,9 @@ function AdminFormContent() {
           </div>
         </div>
       </main>
+
+      {/* AI Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }
