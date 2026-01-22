@@ -4,6 +4,7 @@ import { getSupabase } from './supabase';
 import type {
   KnowledgeEntry,
   KnowledgeSection,
+  KnowledgeDocument,
   PricingContent,
   FAQContent,
   CompanyInfoContent,
@@ -35,6 +36,55 @@ export async function fetchKnowledgeEntries(): Promise<KnowledgeEntry[]> {
   }
 
   return data || [];
+}
+
+/**
+ * Fetch all active knowledge documents from Supabase
+ */
+export async function fetchKnowledgeDocuments(): Promise<KnowledgeDocument[]> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('knowledge_documents')
+    .select('*')
+    .eq('status', 'active')
+    .order('section', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching knowledge documents:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Format documents for a specific section
+ */
+function formatDocumentsForSection(
+  documents: KnowledgeDocument[],
+  section: KnowledgeSection
+): string {
+  const sectionDocs = documents.filter((doc) => doc.section === section);
+
+  if (sectionDocs.length === 0) {
+    return '';
+  }
+
+  const parts: string[] = [`\n### Documents supplementaires:\n`];
+
+  sectionDocs.forEach((doc) => {
+    if (doc.extracted_text) {
+      parts.push(`**${doc.original_name}:**`);
+      parts.push(doc.extracted_text);
+      parts.push('');
+    }
+  });
+
+  return parts.join('\n');
 }
 
 /**
@@ -249,9 +299,10 @@ function formatKnowledgeEntry(entry: KnowledgeEntry): string {
  * Build the complete system prompt from knowledge base
  */
 export async function buildSystemPrompt(): Promise<string> {
-  const [config, entries] = await Promise.all([
+  const [config, entries, documents] = await Promise.all([
     fetchSystemPromptConfig(),
     fetchKnowledgeEntries(),
+    fetchKnowledgeDocuments(),
   ]);
 
   const parts: string[] = [config.prompt, '\n---\n'];
@@ -262,6 +313,16 @@ export async function buildSystemPrompt(): Promise<string> {
       const formatted = formatKnowledgeEntry(entry);
       if (formatted) {
         parts.push(formatted);
+
+        // Add documents for this section
+        const sectionDocs = formatDocumentsForSection(
+          documents,
+          entry.section as KnowledgeSection
+        );
+        if (sectionDocs) {
+          parts.push(sectionDocs);
+        }
+
         parts.push('\n---\n');
       }
     });

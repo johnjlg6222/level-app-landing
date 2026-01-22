@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import type { KnowledgeEntry, KnowledgeSection, KnowledgeContent } from '@/types/knowledge';
+import type {
+  KnowledgeEntry,
+  KnowledgeSection,
+  KnowledgeContent,
+  KnowledgeDocument,
+  KnowledgeVersion,
+} from '@/types/knowledge';
 
 export interface UseKnowledgeReturn {
   entries: KnowledgeEntry[];
@@ -13,6 +19,14 @@ export interface UseKnowledgeReturn {
   deleteEntry: (section: KnowledgeSection) => Promise<void>;
   importData: () => Promise<{ success: boolean; message: string }>;
   previewPrompt: () => Promise<{ prompt: string; estimatedTokens: number } | null>;
+  // Document methods
+  fetchDocuments: (section?: KnowledgeSection) => Promise<KnowledgeDocument[]>;
+  uploadDocument: (section: KnowledgeSection, file: File) => Promise<KnowledgeDocument | null>;
+  updateDocument: (id: string, updates: Partial<KnowledgeDocument>) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
+  // Version methods
+  fetchVersions: (knowledgeId: string) => Promise<KnowledgeVersion[]>;
+  restoreVersion: (versionId: string, knowledgeId: string) => Promise<void>;
 }
 
 export function useKnowledge(): UseKnowledgeReturn {
@@ -175,6 +189,131 @@ export function useKnowledge(): UseKnowledgeReturn {
     }
   }, []);
 
+  // Document methods
+  const fetchDocuments = useCallback(async (section?: KnowledgeSection) => {
+    try {
+      const url = section
+        ? `/api/admin/knowledge/documents?section=${section}`
+        : '/api/admin/knowledge/documents';
+      const response = await fetch(url);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch documents');
+      }
+
+      return result.data as KnowledgeDocument[];
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch documents';
+      setError(errorMessage);
+      return [];
+    }
+  }, []);
+
+  const uploadDocument = useCallback(async (section: KnowledgeSection, file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('section', section);
+
+      const response = await fetch('/api/admin/knowledge/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to upload document');
+      }
+
+      return result.data as KnowledgeDocument;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload document';
+      setError(errorMessage);
+      return null;
+    }
+  }, []);
+
+  const updateDocument = useCallback(async (id: string, updates: Partial<KnowledgeDocument>) => {
+    try {
+      const response = await fetch('/api/admin/knowledge/documents', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...updates }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update document');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update document';
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
+
+  const deleteDocument = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/knowledge/documents?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete document');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete document';
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
+
+  // Version methods
+  const fetchVersions = useCallback(async (knowledgeId: string) => {
+    try {
+      const response = await fetch(`/api/admin/knowledge/versions?knowledge_id=${knowledgeId}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch versions');
+      }
+
+      return result.data as KnowledgeVersion[];
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch versions';
+      setError(errorMessage);
+      return [];
+    }
+  }, []);
+
+  const restoreVersion = useCallback(async (versionId: string, knowledgeId: string) => {
+    try {
+      const response = await fetch('/api/admin/knowledge/versions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version_id: versionId, knowledge_id: knowledgeId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to restore version');
+      }
+
+      // Refresh entries after restore
+      await fetchEntries();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to restore version';
+      setError(errorMessage);
+      throw err;
+    }
+  }, [fetchEntries]);
+
   // Fetch entries on mount
   useEffect(() => {
     fetchEntries();
@@ -190,6 +329,14 @@ export function useKnowledge(): UseKnowledgeReturn {
     deleteEntry,
     importData,
     previewPrompt,
+    // Document methods
+    fetchDocuments,
+    uploadDocument,
+    updateDocument,
+    deleteDocument,
+    // Version methods
+    fetchVersions,
+    restoreVersion,
   };
 }
 

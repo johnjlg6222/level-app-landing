@@ -1,5 +1,33 @@
 // Knowledge types for chatbot knowledge base
 
+// Document status for uploaded files
+export type DocumentStatus = 'pending' | 'extracted' | 'reviewed' | 'active';
+
+// Knowledge document for file attachments
+export interface KnowledgeDocument {
+  id: string;
+  section: KnowledgeSection;
+  filename: string;
+  original_name: string;
+  mime_type: string;
+  file_size: number;
+  extracted_text: string | null;
+  status: DocumentStatus;
+  storage_path: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Version history entry
+export interface KnowledgeVersion {
+  id: string;
+  knowledge_id: string;
+  content: KnowledgeContent;
+  version_number: number;
+  created_by: string | null;
+  created_at: string;
+}
+
 export type KnowledgeSection =
   | 'pricing'
   | 'faq'
