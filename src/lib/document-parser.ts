@@ -128,10 +128,16 @@ export async function parseCSV(content: string): Promise<ParseResult> {
           },
         });
       },
-      error: (error) => {
+      error: (error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+              ? error
+              : 'Unknown error';
         resolve({
           success: false,
-          error: `Erreur lors de l'analyse du CSV: ${error.message}`,
+          error: `Erreur lors de l'analyse du CSV: ${message}`,
         });
       },
     });
