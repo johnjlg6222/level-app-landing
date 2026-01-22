@@ -8,25 +8,32 @@ export function useActiveSection(): string {
   const [activeSection, setActiveSection] = useState('home');
 
   useEffect(() => {
+    // Ensure we're on the client
+    if (typeof window === 'undefined') return;
+
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 200; // Offset for better detection
+      try {
+        const scrollPosition = window.scrollY + 200; // Offset for better detection
 
-      // Find which section we're currently in
-      let currentSection = 'home';
+        // Find which section we're currently in
+        let currentSection = 'home';
 
-      for (const sectionId of SECTION_IDS) {
-        const element = document.getElementById(sectionId);
-        if (!element) continue;
+        for (const sectionId of SECTION_IDS) {
+          const element = document.getElementById(sectionId);
+          if (!element) continue;
 
-        const { offsetTop, offsetHeight } = element;
+          const { offsetTop, offsetHeight } = element;
 
-        if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-          currentSection = sectionId;
-          break;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            currentSection = sectionId;
+            break;
+          }
         }
-      }
 
-      setActiveSection(currentSection);
+        setActiveSection(currentSection);
+      } catch {
+        // Silently handle any errors
+      }
     };
 
     // Run on mount

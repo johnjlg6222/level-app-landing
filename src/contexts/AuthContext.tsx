@@ -10,6 +10,38 @@ const ADMIN_BYPASS_EMAIL = 'admin@level.app';
 const ADMIN_BYPASS_PASSWORD = 'admin123';
 const BYPASS_ADMIN_SESSION_KEY = 'level_admin_bypass_session';
 
+// Safe sessionStorage wrapper for iOS private browsing mode
+const safeSessionStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      if (typeof window !== 'undefined') {
+        return sessionStorage.getItem(key);
+      }
+    } catch {
+      // sessionStorage not available (e.g., iOS private browsing)
+    }
+    return null;
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(key, value);
+      }
+    } catch {
+      // sessionStorage not available
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(key);
+      }
+    } catch {
+      // sessionStorage not available
+    }
+  },
+};
+
 // Create a mock admin user for bypass authentication
 const createBypassAdminUser = (): User => ({
   id: 'bypass-admin-user-id',
@@ -47,14 +79,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const getInitialSession = async () => {
       try {
         // Check for bypass admin session first
-        if (typeof window !== 'undefined') {
-          const bypassSession = sessionStorage.getItem(BYPASS_ADMIN_SESSION_KEY);
-          if (bypassSession === 'true') {
-            setUser(createBypassAdminUser());
-            setIsAdmin(true);
-            setIsLoading(false);
-            return;
-          }
+        const bypassSession = safeSessionStorage.getItem(BYPASS_ADMIN_SESSION_KEY);
+        if (bypassSession === 'true') {
+          setUser(createBypassAdminUser());
+          setIsAdmin(true);
+          setIsLoading(false);
+          return;
         }
 
         const {
@@ -79,11 +109,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Don't override bypass admin session
-      if (typeof window !== 'undefined') {
-        const bypassSession = sessionStorage.getItem(BYPASS_ADMIN_SESSION_KEY);
-        if (bypassSession === 'true') {
-          return;
-        }
+      const bypassSession = safeSessionStorage.getItem(BYPASS_ADMIN_SESSION_KEY);
+      if (bypassSession === 'true') {
+        return;
       }
 
       if (session?.user) {
@@ -112,9 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const bypassUser = createBypassAdminUser();
       setUser(bypassUser);
       setIsAdmin(true);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(BYPASS_ADMIN_SESSION_KEY, 'true');
-      }
+      safeSessionStorage.setItem(BYPASS_ADMIN_SESSION_KEY, 'true');
       return { error: null };
     }
 
@@ -147,9 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sign out
   const signOut = async () => {
     // Clear bypass session
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem(BYPASS_ADMIN_SESSION_KEY);
-    }
+    safeSessionStorage.removeItem(BYPASS_ADMIN_SESSION_KEY);
 
     const supabase = getSupabase();
     if (supabase) {

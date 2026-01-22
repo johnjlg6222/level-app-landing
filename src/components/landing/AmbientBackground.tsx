@@ -24,16 +24,30 @@ export const AmbientBackground: React.FC = () => {
 export const MouseSpotlight: React.FC = () => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(true); // Default to mobile to prevent flash
   const lastUpdateRef = useRef(0);
   const springConfig = { damping: 25, stiffness: 700 };
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
+  // CRITICAL: Hook must be called before any conditional returns to comply with Rules of Hooks
+  const background = useMotionTemplate`radial-gradient(400px circle at ${smoothX}px ${smoothY}px, rgba(59, 130, 246, 0.08), transparent 80%)`;
+
   useEffect(() => {
-    // Disable on mobile/touch devices for better performance
+    // Mark as mounted (client-side only)
+    setMounted(true);
+
+    // Check if mobile/touch device
     const checkMobile = () => {
-      setIsMobile(window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window);
+      try {
+        const mobileQuery = window.matchMedia('(max-width: 768px)').matches;
+        const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        setIsMobile(mobileQuery || hasTouch);
+      } catch {
+        // If matchMedia fails, assume mobile
+        setIsMobile(true);
+      }
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -41,7 +55,7 @@ export const MouseSpotlight: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (isMobile) return;
+    if (!mounted || isMobile) return;
 
     // Throttle to ~30fps (33ms) for better scroll performance
     const handleMouseMove = ({ clientX, clientY }: MouseEvent) => {
@@ -54,12 +68,10 @@ export const MouseSpotlight: React.FC = () => {
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY, isMobile]);
+  }, [mouseX, mouseY, isMobile, mounted]);
 
-  // Don't render spotlight on mobile
-  if (isMobile) return null;
-
-  const background = useMotionTemplate`radial-gradient(400px circle at ${smoothX}px ${smoothY}px, rgba(59, 130, 246, 0.08), transparent 80%)`;
+  // Don't render until client-side mounted and not on mobile
+  if (!mounted || isMobile) return null;
 
   return <motion.div className="fixed inset-0 pointer-events-none z-0" style={{ background }} />;
 };
