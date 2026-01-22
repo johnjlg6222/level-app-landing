@@ -13,7 +13,7 @@ import {
   Clock,
 } from 'lucide-react';
 import type { KnowledgeDocument } from '@/types/knowledge';
-import { formatFileSize } from '@/lib/document-parser';
+import { formatFileSize } from '@/lib/file-utils';
 
 interface DocumentListProps {
   documents: KnowledgeDocument[];

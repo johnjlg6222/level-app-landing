@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, Loader2, X, AlertCircle } from 'lucide-react';
-import { SUPPORTED_EXTENSIONS, formatFileSize, validateFile } from '@/lib/document-parser';
+import { SUPPORTED_EXTENSIONS, formatFileSize, validateFile } from '@/lib/file-utils';
 import type { KnowledgeSection, KnowledgeDocument } from '@/types/knowledge';
 
 interface DocumentUploaderProps {
