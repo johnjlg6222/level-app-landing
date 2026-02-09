@@ -4,8 +4,8 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { ClosingWizardState, SelectedFeatureDetail } from '@/types/closing-wizard';
 import { CLOSING_WIZARD_STEPS } from '@/types/closing-wizard';
 import type { PricingFeature, PricingPackWithFeatures } from '@/types/admin-pricing';
-import { pricingFeaturesService, pricingPacksService } from '@/lib/pricing-service';
-import { calculateQuotePriceFromDB, calculateQuotePrice } from '@/lib/pricing-config';
+import { LOCAL_FEATURES, LOCAL_PACKS } from '@/data/pricing-data';
+import { calculateQuotePrice } from '@/lib/pricing-config';
 import type { PriceBreakdownItem } from '@/types/calculator';
 
 const STORAGE_KEY = 'closing-wizard-draft';
@@ -64,7 +64,7 @@ export interface CalculatedPrice {
 
 export interface UseClosingWizardReturn {
   state: ClosingWizardState;
-  // DB data
+  // Local data
   allFeatures: PricingFeature[];
   allPacks: PricingPackWithFeatures[];
   isLoading: boolean;
@@ -96,13 +96,15 @@ export interface UseClosingWizardReturn {
 export function useClosingWizard(): UseClosingWizardReturn {
   const stored = useRef(loadFromStorage());
   const [state, setState] = useState<ClosingWizardState>(() => stored.current?.state || initialState);
-  const [allFeatures, setAllFeatures] = useState<PricingFeature[]>([]);
-  const [allPacks, setAllPacks] = useState<PricingPackWithFeatures[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(
     () => new Set(stored.current?.visitedSteps.length ? stored.current.visitedSteps : [0])
   );
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Local data — no loading needed
+  const allFeatures = LOCAL_FEATURES;
+  const allPacks = LOCAL_PACKS;
+  const isLoading = false;
 
   // Persist state + visitedSteps to localStorage (debounced)
   useEffect(() => {
@@ -115,26 +117,6 @@ export function useClosingWizard(): UseClosingWizardReturn {
     }, 500);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [state, visitedSteps]);
-
-  // Load features and packs from DB on mount
-  useEffect(() => {
-    async function load() {
-      setIsLoading(true);
-      try {
-        const [featRes, packRes] = await Promise.all([
-          pricingFeaturesService.list(),
-          pricingPacksService.listWithFeatures(),
-        ]);
-        if (featRes.data) setAllFeatures(featRes.data as PricingFeature[]);
-        if (packRes.data) setAllPacks(packRes.data);
-      } catch (err) {
-        console.error('Error loading pricing data:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    load();
-  }, []);
 
   // Navigation
   const totalSteps = CLOSING_WIZARD_STEPS.length;
@@ -299,42 +281,21 @@ export function useClosingWizard(): UseClosingWizardReturn {
     return state.selectedFeatureIds.filter(id => !state.packFeatureIds.includes(id));
   }, [state.selectedFeatureIds, state.packFeatureIds]);
 
-  // Calculate price
-  const pricingInput = useMemo(() => {
-    // Build a combined list: packs (by ID) + a-la-carte features
+  // Calculate price (synchronous, local-only)
+  const calculatedPrice = useMemo(() => {
     const selectedPackIds: string[] = [...state.selectedCategoryPacks];
     if (state.selectedMainPack) selectedPackIds.push(state.selectedMainPack);
 
-    return {
-      selectedPlan: '', // Not used in new flow
+    return calculateQuotePrice({
+      selectedPlan: '',
       selectedPacks: selectedPackIds,
-      selectedFeatures: aLaCarteFeatureIds, // Only charge for a-la-carte
+      selectedFeatures: aLaCarteFeatureIds,
       extraScreens: state.extraScreens,
       discount: state.discount,
       urgency: state.logistics.urgency,
       maintenance: state.logistics.maintenance,
-    };
+    });
   }, [state.selectedMainPack, state.selectedCategoryPacks, aLaCarteFeatureIds, state.extraScreens, state.discount, state.logistics.urgency, state.logistics.maintenance]);
-
-  // Sync fallback price
-  const fallbackPrice = useMemo(() => calculateQuotePrice(pricingInput), [pricingInput]);
-
-  // DB-driven price (async)
-  const [dbPrice, setDbPrice] = useState<CalculatedPrice | null>(null);
-  const dbPriceVersion = useRef(0);
-
-  useEffect(() => {
-    const version = ++dbPriceVersion.current;
-    calculateQuotePriceFromDB(pricingInput)
-      .then(result => {
-        if (version === dbPriceVersion.current) setDbPrice(result);
-      })
-      .catch(() => {
-        if (version === dbPriceVersion.current) setDbPrice(null);
-      });
-  }, [pricingInput]);
-
-  const calculatedPrice = dbPrice ?? fallbackPrice;
 
   // Selected feature details for PRD
   const selectedFeatureDetails = useMemo((): SelectedFeatureDetail[] => {
@@ -352,7 +313,7 @@ export function useClosingWizard(): UseClosingWizardReturn {
     }).filter(Boolean) as SelectedFeatureDetail[];
   }, [allSelectedFeatureIds, allFeatures, packFeatureNames]);
 
-  // Completed steps tracking
+  // Completed steps tracking (13 category steps: indices 3-15)
   const completedSteps = useMemo(() => {
     const completed = new Set<number>();
 
@@ -362,10 +323,10 @@ export function useClosingWizard(): UseClosingWizardReturn {
     if (state.projectContext.projectName.trim()) completed.add(1);
     // Step 2: Packs - completed if any pack selected
     if (state.selectedMainPack || state.selectedCategoryPacks.length > 0) completed.add(2);
-    // Steps 3-17: Category steps - completed if visited (any feature selected in that category)
-    for (let i = 3; i <= 17; i++) {
+    // Steps 3-15: Category steps - completed if any feature selected in that category
+    for (let i = 3; i <= 15; i++) {
       const step = CLOSING_WIZARD_STEPS[i];
-      if (step.category) {
+      if (step?.category) {
         const catFeatures = allFeatures.filter(f => f.category === step.category);
         const hasSelected = catFeatures.some(f =>
           state.selectedFeatureIds.includes(f.id) || state.packFeatureIds.includes(f.id)
@@ -373,25 +334,25 @@ export function useClosingWizard(): UseClosingWizardReturn {
         if (hasSelected) completed.add(i);
       }
     }
-    // Step 18: Design - completed if visited AND any value differs from defaults
-    if (visitedSteps.has(18) && (
+    // Step 16: Design - completed if visited AND any value differs from defaults
+    if (visitedSteps.has(16) && (
       state.design.style !== 'moderne' ||
       state.design.hasBranding !== false ||
       state.design.primaryColor !== '#3B82F6' ||
       state.design.secondaryColor !== '#1E40AF'
-    )) completed.add(18);
-    // Step 19: Logistics - completed if any non-default value set
+    )) completed.add(16);
+    // Step 17: Logistics - completed if any non-default value set
     if (
       state.logistics.deadline ||
       state.logistics.urgency !== 'normal' ||
       state.logistics.maintenance !== 'none'
-    ) completed.add(19);
-    // Step 20: Notes - completed if any note field has content
+    ) completed.add(17);
+    // Step 18: Notes - completed if any note field has content
     if (
       state.notes.indispensable.trim() ||
       state.notes.niceToHave.trim() ||
       state.notes.internal.trim()
-    ) completed.add(20);
+    ) completed.add(18);
 
     return completed;
   }, [state, allFeatures, visitedSteps]);

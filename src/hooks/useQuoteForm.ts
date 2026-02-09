@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { QuoteData } from '@/types/leads';
-import { calculateQuotePrice, calculateQuotePriceFromDB } from '@/lib/pricing-config';
+import { calculateQuotePrice } from '@/lib/pricing-config';
 import { quotesService } from '@/lib/supabase';
 
 export interface QuoteFormState {
@@ -238,29 +238,8 @@ export function useQuoteForm() {
   // Immediate sync calculation (hardcoded fallback, always available)
   const fallbackPrice = useMemo(() => calculateQuotePrice(pricingInput), [pricingInput]);
 
-  // DB-driven price (async, overwrites fallback when ready)
-  const [dbPrice, setDbPrice] = useState<typeof fallbackPrice | null>(null);
-  const dbPriceVersion = useRef(0);
-
-  useEffect(() => {
-    const version = ++dbPriceVersion.current;
-    calculateQuotePriceFromDB(pricingInput)
-      .then((result) => {
-        // Only apply if this is still the latest request
-        if (version === dbPriceVersion.current) {
-          setDbPrice(result);
-        }
-      })
-      .catch(() => {
-        // DB unavailable - silently keep using fallback
-        if (version === dbPriceVersion.current) {
-          setDbPrice(null);
-        }
-      });
-  }, [pricingInput]);
-
-  // Use DB price if available, otherwise hardcoded fallback
-  const calculatedPrice = dbPrice ?? fallbackPrice;
+  // Use local price calculation (no DB)
+  const calculatedPrice = fallbackPrice;
 
   // Convert form state to QuoteData for database
   const toQuoteData = useCallback((): Omit<QuoteData, 'id' | 'created_at' | 'updated_at'> => {

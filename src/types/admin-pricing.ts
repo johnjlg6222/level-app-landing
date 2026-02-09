@@ -65,23 +65,21 @@ export type PricingConfigUpdate = {
   value: Record<string, unknown>;
 };
 
-// Feature categories from the Excel grid (15 categories)
+// Feature categories from the Excel grid (13 categories)
 export const PRICING_CATEGORIES = [
-  'Authentification & Gestion des utilisateurs',
-  'Paiements & Facturation',
-  'Base de donnees & Backend',
-  'Dashboard & Analytics',
+  'Authentification & Sécurité',
+  'Paiements & Monétisation',
+  'Base de Données & Données',
+  'Dashboard & Admin',
   'Notifications',
+  'Social & Communauté',
   'Calendrier & Planning',
-  'Integrations tierces',
-  'Gestion de medias',
-  'IA & Chatbot',
-  'Recherche & Filtres',
-  'Analytics avancee',
-  'Export & Import de donnees',
-  'Localisation & i18n',
-  'UI/UX avancee',
-  'Securite avancee',
+  'Intégrations Externes',
+  'Fonctionnalités Avancées',
+  'Design & UI/UX',
+  'Mobile Spécifique',
+  'SEO & Performance',
+  'Sécurité & Conformité',
 ] as const;
 
 export type PricingCategory = (typeof PRICING_CATEGORIES)[number];
