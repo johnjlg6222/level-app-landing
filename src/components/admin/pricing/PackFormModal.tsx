@@ -14,17 +14,20 @@ import type {
 interface PackFormModalProps {
   pack: PricingPackWithFeatures | null; // null = create mode
   allFeatures: PricingFeature[];
+  allPacks?: PricingPackWithFeatures[];
   groupedFeatures: GroupedFeatures;
   onSave: (data: PricingPackInput & { feature_ids: string[] }) => Promise<void>;
   onClose: () => void;
 }
 
-export function PackFormModal({ pack, allFeatures, groupedFeatures, onSave, onClose }: PackFormModalProps) {
+export function PackFormModal({ pack, allFeatures, allPacks = [], groupedFeatures, onSave, onClose }: PackFormModalProps) {
   const [name, setName] = useState(pack?.name || '');
   const [description, setDescription] = useState(pack?.description || '');
   const [packType, setPackType] = useState<'main' | 'category'>(pack?.pack_type || 'main');
   const [price, setPrice] = useState(pack?.price || 0);
   const [recommended, setRecommended] = useState(pack?.recommended || false);
+  const [discountPercentage, setDiscountPercentage] = useState(pack?.discount_percentage || 0);
+  const [includesPackId, setIncludesPackId] = useState<string | null>(pack?.includes_pack_id || null);
   const [isActive, setIsActive] = useState(pack?.is_active ?? true);
   const [sortOrder, setSortOrder] = useState(pack?.sort_order || 0);
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<Set<string>>(
@@ -53,6 +56,8 @@ export function PackFormModal({ pack, allFeatures, groupedFeatures, onSave, onCl
         description,
         pack_type: packType,
         price,
+        discount_percentage: discountPercentage,
+        includes_pack_id: includesPackId,
         recommended,
         is_active: isActive,
         sort_order: sortOrder,
@@ -115,6 +120,30 @@ export function PackFormModal({ pack, allFeatures, groupedFeatures, onSave, onCl
               value={price}
               onChange={(e) => setPrice(Number(e.target.value))}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Remise (%)"
+              type="number"
+              min={0}
+              max={100}
+              value={discountPercentage}
+              onChange={(e) => setDiscountPercentage(Number(e.target.value))}
+            />
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Pack parent (cumulatif)</label>
+              <select
+                value={includesPackId || ''}
+                onChange={(e) => setIncludesPackId(e.target.value || null)}
+                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+              >
+                <option value="" className="bg-[#0F1115]">Aucun</option>
+                {allPacks.filter(p => p.id !== pack?.id && p.pack_type === 'main').map(p => (
+                  <option key={p.id} value={p.id} className="bg-[#0F1115]">{p.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
