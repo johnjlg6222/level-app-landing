@@ -13,11 +13,30 @@ import type {
 } from '@/types/prd';
 
 const STORAGE_KEY = 'prd-wizard-draft';
+const STORAGE_HASH_KEY = 'prd-wizard-quote-hash';
 const FETCH_TIMEOUT_MS = 120_000; // 2 minutes
+
+// Simple hash for detecting quote data changes
+function hashQuoteData(data: GenerateQuestionsRequest): string {
+  const str = JSON.stringify({
+    c: data.clientInfo.company,
+    p: data.projectContext.projectName,
+    pl: data.selectedPlan,
+    pk: data.selectedPacks.sort(),
+    f: data.selectedFeatures?.map(f => f.featureId).sort(),
+  });
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return hash.toString(36);
+}
 
 export interface UsePRDWizardReturn {
   state: PRDWizardState;
-  startWizard: (quoteData: GenerateQuestionsRequest) => Promise<void>;
+  startWizard: (quoteData: GenerateQuestionsRequest, forceRefresh?: boolean) => Promise<void>;
   setAnswer: (questionId: string, answer: string) => void;
   acceptSuggestion: (questionId: string) => void;
   goToStep: (step: number) => void;
@@ -127,11 +146,33 @@ export function usePRDWizard(): UsePRDWizardReturn {
     }));
   }, []);
 
-  const startWizard = useCallback(async (quoteData: GenerateQuestionsRequest) => {
-    // If we already have questions from localStorage, skip the API call
-    // (the useEffect above already restored them)
+  const startWizard = useCallback(async (quoteData: GenerateQuestionsRequest, forceRefresh = false) => {
+    // Check if quote data has changed since last draft
+    const currentHash = hashQuoteData(quoteData);
+    const storedHash = (() => { try { return localStorage.getItem(STORAGE_HASH_KEY); } catch { return null; } })();
 
-    setState((prev) => ({ ...prev, isGeneratingQuestions: true, error: null, isCancelling: false }));
+    // If we have a valid draft with matching hash and not forcing refresh, skip API call
+    if (!forceRefresh && storedHash === currentHash) {
+      const draft = loadDraft();
+      if (draft && draft.questions && draft.questions.length > 0) {
+        setState((prev) => ({
+          ...prev,
+          questions: draft.questions!,
+          answers: draft.answers ?? {},
+          generatedPRD: draft.generatedPRD ?? null,
+          currentStep: draft.currentStep ?? 0,
+        }));
+        return;
+      }
+    }
+
+    // Clear stale draft if hash changed
+    if (storedHash !== currentHash) {
+      clearDraft();
+      try { localStorage.setItem(STORAGE_HASH_KEY, currentHash); } catch { /* ignore */ }
+    }
+
+    setState((prev) => ({ ...prev, isGeneratingQuestions: true, error: null, isCancelling: false, questions: [], answers: {}, generatedPRD: null }));
     lastActionRef.current = { type: 'questions', quoteData };
 
     const controller = new AbortController();
@@ -352,6 +393,7 @@ export function usePRDWizard(): UsePRDWizardReturn {
     }
     setState(initialState);
     clearDraft();
+    try { localStorage.removeItem(STORAGE_HASH_KEY); } catch { /* ignore */ }
     lastActionRef.current = null;
   }, []);
 

@@ -3,6 +3,7 @@ export { useCalculatorState, type UseCalculatorStateReturn } from './useCalculat
 export { useLeadSubmission, type UseLeadSubmissionReturn } from './useLeadSubmission';
 export { usePriceCalculation, type UsePriceCalculationReturn } from './usePriceCalculation';
 export { useQuoteForm, type QuoteFormState } from './useQuoteForm';
+export { useClosingWizard, type UseClosingWizardReturn } from './useClosingWizard';
 export { useActiveSection } from './useActiveSection';
 export { useChat, type UseChatReturn } from './useChat';
 export { useKnowledge, type UseKnowledgeReturn, getKnowledgeContent } from './useKnowledge';

@@ -68,6 +68,15 @@ export interface PRDWizardState {
   error: string | null;
 }
 
+// Selected feature detail for PRD scoping
+export interface SelectedFeatureForPRD {
+  featureId: string;
+  featureName: string;
+  category: string;
+  price: number;
+  fromPack: string | null; // pack name if auto-included, null if a-la-carte
+}
+
 // API request: generate questions
 export interface GenerateQuestionsRequest {
   clientInfo: {
@@ -84,6 +93,7 @@ export interface GenerateQuestionsRequest {
   selectedPacks: string[];
   simpleFeatures: Record<string, unknown>;
   advancedFeatures: string[];
+  selectedFeatures?: SelectedFeatureForPRD[];
   design: {
     style: string;
     darkMode: boolean;
@@ -105,6 +115,7 @@ export interface GeneratePRDRequest {
   quoteData: GenerateQuestionsRequest;
   answers: PRDAnswer[];
   questions: PRDQuestion[]; // Full question objects so AI gets question text, not just IDs
+  selectedFeatures?: SelectedFeatureForPRD[]; // Strict scoping: only these features in the PRD
 }
 
 // API response: generate PRD document

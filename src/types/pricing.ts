@@ -152,9 +152,9 @@ export interface MaintenanceOption {
 
 export const MAINTENANCE_OPTIONS: MaintenanceOption[] = [
   { id: 'none', label: 'Sans maintenance', description: 'Support limité après livraison', monthlyPrice: 0 },
-  { id: 'basic', label: 'Maintenance Basic', description: 'Corrections de bugs', monthlyPrice: 200 },
-  { id: 'standard', label: 'Maintenance Standard', description: 'Bugs + petites évolutions', monthlyPrice: 400 },
-  { id: 'premium', label: 'Maintenance Premium', description: 'Support complet + évolutions', monthlyPrice: 800 },
+  { id: 'basic', label: 'Maintenance Basic', description: 'Corrections de bugs', monthlyPrice: 350 },
+  { id: 'standard', label: 'Maintenance Standard', description: 'Bugs + petites évolutions', monthlyPrice: 700 },
+  { id: 'premium', label: 'Maintenance Premium', description: 'Support complet + évolutions', monthlyPrice: 1133 },
 ];
 
 // Client sector options

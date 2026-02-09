@@ -166,7 +166,17 @@ Genere les questions PRD ciblees pour ce projet. Reponds avec un tableau JSON va
 export async function generatePRDDocument(
   request: GeneratePRDRequest
 ): Promise<string> {
-  const { quoteData, answers, questions } = request;
+  const { quoteData, answers, questions, selectedFeatures } = request;
+
+  const featureScopeBlock = selectedFeatures && selectedFeatures.length > 0
+    ? `\n\nREGLE CRITIQUE: Le PRD ne doit couvrir QUE les fonctionnalites listees ci-dessous.
+Ne jamais ajouter, suggerer ou specifier de fonctionnalites qui ne sont pas dans cette liste.
+Si une fonctionnalite connexe serait utile mais n'est pas selectionnee, l'ajouter dans
+une section "Annexe: Suggestions d'upsell" en fin de document avec son prix.
+
+Fonctionnalites selectionnees et payees:
+${selectedFeatures.map(f => `- ${f.featureName} (${f.category}) - Prix: ${f.price} EUR ${f.fromPack ? `[Inclus ${f.fromPack}]` : '[A la carte]'}`).join('\n')}`
+    : '';
 
   const systemPrompt = `Tu es un Product Manager technique senior qui genere des PRD (Product Requirements Document) prets pour le vibecoding.
 Le PRD sera utilise par une equipe dev qui travaille avec Claude Opus comme assistant de code.
@@ -187,13 +197,14 @@ Genere un PRD complet en markdown avec les sections suivantes:
 5. **Approche technique suggeree** - stack, architecture, patterns recommandes
 6. **Ordre de priorite** - dans quel ordre implementer
 7. **Metriques de succes** - comment mesurer le succes du projet
+8. **Annexe: Suggestions d'upsell** - fonctionnalites non selectionnees mais utiles, avec prix
 
 Regles:
 - Tout en francais
 - Criteres d'acceptation concrets, pas vagues
 - Suggestions techniques specifiques (ex: "utiliser Supabase RLS", "React Hook Form pour les formulaires")
 - Structure markdown claire avec headers, listes, code blocks
-- Le PRD doit etre directement utilisable par Claude Opus pour generer du code`;
+- Le PRD doit etre directement utilisable par Claude Opus pour generer du code${featureScopeBlock}`;
 
   // Build a question lookup for matching answers to their question text
   const questionMap = new Map(questions.map((q) => [q.id, q]));

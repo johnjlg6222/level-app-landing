@@ -1,6 +1,6 @@
 // Admin Pricing Types - DB-driven pricing management
 
-// Pricing feature (individual feature with prices from 3 partners)
+// Pricing feature (individual feature with prices from 4 partners)
 export interface PricingFeature {
   id: string;
   name: string;
@@ -9,7 +9,8 @@ export interface PricingFeature {
   price_john: number;
   price_harouna: number;
   price_andre: number;
-  final_price: number; // GREATEST(price_john, price_harouna, price_andre) - DB generated
+  price_christophe: number;
+  final_price: number; // AVG of non-zero partner prices - DB generated
   sort_order: number;
   is_active: boolean;
   created_at: string;
@@ -27,6 +28,8 @@ export interface PricingPack {
   description: string;
   pack_type: 'main' | 'category';
   price: number;
+  discount_percentage: number;
+  includes_pack_id: string | null;
   sort_order: number;
   is_active: boolean;
   recommended: boolean;
@@ -36,6 +39,11 @@ export interface PricingPack {
 
 export type PricingPackInput = Omit<PricingPack, 'id' | 'created_at' | 'updated_at'>;
 export type PricingPackUpdate = Partial<Omit<PricingPack, 'id' | 'created_at' | 'updated_at'>>;
+
+// Pack with resolved includes (for cumulative logic)
+export interface PricingPackResolved extends PricingPack {
+  includedPack?: PricingPack | null;
+}
 
 // Junction: pack <-> features
 export interface PricingPackFeature {
@@ -57,24 +65,23 @@ export type PricingConfigUpdate = {
   value: Record<string, unknown>;
 };
 
-// Feature categories from the Excel grid
+// Feature categories from the Excel grid (15 categories)
 export const PRICING_CATEGORIES = [
-  'Authentification',
-  'Paiements',
-  'Base de donnees',
-  'Dashboard',
+  'Authentification & Gestion des utilisateurs',
+  'Paiements & Facturation',
+  'Base de donnees & Backend',
+  'Dashboard & Analytics',
   'Notifications',
-  'Calendrier',
-  'Integrations',
-  'Media',
-  'IA & Chat',
-  'Recherche',
-  'Analytics',
-  'Export/Import',
-  'Localisation',
-  'UI/UX',
-  'Securite',
-  'Infrastructure',
+  'Calendrier & Planning',
+  'Integrations tierces',
+  'Gestion de medias',
+  'IA & Chatbot',
+  'Recherche & Filtres',
+  'Analytics avancee',
+  'Export & Import de donnees',
+  'Localisation & i18n',
+  'UI/UX avancee',
+  'Securite avancee',
 ] as const;
 
 export type PricingCategory = (typeof PRICING_CATEGORIES)[number];
