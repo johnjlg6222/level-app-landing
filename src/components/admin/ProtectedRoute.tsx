@@ -8,10 +8,11 @@ import { Loader2 } from 'lucide-react';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  requireSuperAdmin?: boolean;
 }
 
-export function ProtectedRoute({ children, requireAdmin = true }: ProtectedRouteProps) {
-  const { user, isAdmin, isLoading } = useAuth();
+export function ProtectedRoute({ children, requireAdmin = true, requireSuperAdmin = false }: ProtectedRouteProps) {
+  const { user, isAdmin, role, isLoading } = useAuth();
   const router = useRouter();
 
   React.useEffect(() => {
@@ -20,9 +21,11 @@ export function ProtectedRoute({ children, requireAdmin = true }: ProtectedRoute
         router.push('/admin');
       } else if (requireAdmin && !isAdmin) {
         router.push('/admin?error=unauthorized');
+      } else if (requireSuperAdmin && role !== 'super_admin') {
+        router.push('/admin/closing?error=super_admin_required');
       }
     }
-  }, [user, isAdmin, isLoading, requireAdmin, router]);
+  }, [user, isAdmin, role, isLoading, requireAdmin, requireSuperAdmin, router]);
 
   if (isLoading) {
     return (
@@ -36,6 +39,10 @@ export function ProtectedRoute({ children, requireAdmin = true }: ProtectedRoute
   }
 
   if (!user || (requireAdmin && !isAdmin)) {
+    return null;
+  }
+
+  if (requireSuperAdmin && role !== 'super_admin') {
     return null;
   }
 

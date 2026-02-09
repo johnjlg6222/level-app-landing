@@ -151,6 +151,28 @@ export async function checkIsAdmin(userId: string): Promise<boolean> {
   return ['admin', 'super_admin'].includes(data.role);
 }
 
+// Get admin role for a user
+export async function getAdminRole(userId: string): Promise<'admin' | 'super_admin' | null> {
+  const client = getSupabase();
+  if (!client) return null;
+
+  const { data, error } = await client
+    .from('admin_users')
+    .select('role')
+    .eq('id', userId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  if (data.role === 'admin' || data.role === 'super_admin') {
+    return data.role;
+  }
+
+  return null;
+}
+
 // Lead operations
 export const leadsService = {
   async create(leadData: Omit<Tables['leads'], 'id' | 'created_at'>) {

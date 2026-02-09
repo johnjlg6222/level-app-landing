@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Home, LogOut, Database, MessageCircle } from 'lucide-react';
+import { Home, LogOut, Database, MessageCircle, DollarSign } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/common';
 import { AmbientBackground } from '@/components/landing';
@@ -41,6 +41,14 @@ function KnowledgePageContent() {
               <Database size={18} className="text-blue-400" />
               <h1 className="text-lg font-semibold text-white">Base de Connaissances</h1>
             </div>
+            <div className="h-4 w-px bg-white/10" />
+            <Link
+              href="/admin/pricing"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <DollarSign size={18} />
+              <span className="hidden sm:inline">Tarifs</span>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-400">{user?.email}</span>

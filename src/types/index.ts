@@ -5,3 +5,5 @@ export * from './leads';
 export * from './shared';
 export * from './chat';
 export * from './knowledge';
+export * from './admin-pricing';
+export * from './prd';

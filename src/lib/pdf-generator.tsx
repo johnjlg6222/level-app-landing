@@ -9,7 +9,7 @@ import {
   Font,
 } from '@react-pdf/renderer';
 import { QuoteFormState } from '@/hooks/useQuoteForm';
-import { BASE_PLANS, PACKS, URGENCY_OPTIONS, MAINTENANCE_OPTIONS } from '@/types/pricing';
+import { URGENCY_OPTIONS, MAINTENANCE_OPTIONS } from '@/types/pricing';
 import { formatCurrency } from '@/utils/formatters';
 
 // Define styles
@@ -169,8 +169,6 @@ interface QuotePDFProps {
 }
 
 export function QuotePDFDocument({ state, calculatedPrice }: QuotePDFProps) {
-  const plan = BASE_PLANS.find((p) => p.id === state.selectedPlan);
-  const selectedPacks = PACKS.filter((p) => state.selectedPacks.includes(p.id));
   const urgency = URGENCY_OPTIONS.find((u) => u.id === state.logistics.urgency);
   const maintenance = MAINTENANCE_OPTIONS.find((m) => m.id === state.logistics.maintenance);
 
@@ -234,7 +232,7 @@ export function QuotePDFDocument({ state, calculatedPrice }: QuotePDFProps) {
           </View>
         </View>
 
-        {/* Pricing Table */}
+        {/* Pricing Table - uses breakdown from calculatedPrice (DB-driven) */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Detail du Devis</Text>
           <View style={styles.table}>
@@ -243,19 +241,10 @@ export function QuotePDFDocument({ state, calculatedPrice }: QuotePDFProps) {
               <Text style={styles.tableCellRight}>Montant</Text>
             </View>
 
-            {/* Plan */}
-            {plan && (
-              <View style={styles.tableRow}>
-                <Text style={styles.tableCell}>Plan {plan.name}</Text>
-                <Text style={styles.tableCellRight}>{formatCurrency(plan.basePrice)}</Text>
-              </View>
-            )}
-
-            {/* Packs */}
-            {selectedPacks.map((pack) => (
-              <View key={pack.id} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{pack.name}</Text>
-                <Text style={styles.tableCellRight}>{formatCurrency(pack.price)}</Text>
+            {calculatedPrice.breakdown.map((item, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{item.label}</Text>
+                <Text style={styles.tableCellRight}>{formatCurrency(item.amount)}</Text>
               </View>
             ))}
           </View>

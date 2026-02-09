@@ -6,3 +6,5 @@ export { useQuoteForm, type QuoteFormState } from './useQuoteForm';
 export { useActiveSection } from './useActiveSection';
 export { useChat, type UseChatReturn } from './useChat';
 export { useKnowledge, type UseKnowledgeReturn, getKnowledgeContent } from './useKnowledge';
+export { usePRDWizard, type UsePRDWizardReturn } from './usePRDWizard';
+export { usePricingAdmin, type UsePricingAdminReturn } from './usePricingAdmin';

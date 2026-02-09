@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
-import { getSupabase, checkIsAdmin } from '@/lib/supabase';
-import { AuthContextType } from '@/types/shared';
+import { getSupabase, checkIsAdmin, getAdminRole } from '@/lib/supabase';
+import { AuthContextType, AdminRole } from '@/types/shared';
 
 // Hardcoded admin bypass credentials
 const ADMIN_BYPASS_EMAIL = 'admin@level.app';
@@ -57,12 +57,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<AdminRole>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check admin status
+  // Check admin status and role
   const checkAdminStatus = useCallback(async (userId: string) => {
     const adminStatus = await checkIsAdmin(userId);
     setIsAdmin(adminStatus);
+    if (adminStatus) {
+      const adminRole = await getAdminRole(userId);
+      setRole(adminRole);
+    } else {
+      setRole(null);
+    }
   }, []);
 
   // Handle auth state changes
@@ -83,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (bypassSession === 'true') {
           setUser(createBypassAdminUser());
           setIsAdmin(true);
+          setRole('super_admin');
           setIsLoading(false);
           return;
         }
@@ -120,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUser(null);
         setIsAdmin(false);
+        setRole(null);
       }
       setIsLoading(false);
     });
@@ -140,6 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const bypassUser = createBypassAdminUser();
       setUser(bypassUser);
       setIsAdmin(true);
+      setRole('super_admin');
       safeSessionStorage.setItem(BYPASS_ADMIN_SESSION_KEY, 'true');
       return { error: null };
     }
@@ -181,11 +191,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setUser(null);
     setIsAdmin(false);
+    setRole(null);
   };
 
   const value: AuthContextType = {
     user,
     isAdmin,
+    role,
     isLoading,
     signIn,
     signOut,

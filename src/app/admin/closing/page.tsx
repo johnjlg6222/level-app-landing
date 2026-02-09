@@ -11,14 +11,12 @@ import {
   Briefcase,
   FileText,
   Target,
-  Users,
   CreditCard,
   Bell,
   Calendar,
   Plug,
   Palette,
   Clock,
-  Wrench,
   StickyNote,
   Save,
   Download,
@@ -31,6 +29,8 @@ import {
   Database,
   LayoutDashboard,
   Lock,
+  DollarSign,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuoteForm } from '@/hooks';
@@ -38,6 +38,8 @@ import { Button, Card, Input, Textarea, Badge } from '@/components/common';
 import { AmbientBackground } from '@/components/landing';
 import { ProtectedRoute } from '@/components/admin/ProtectedRoute';
 import { ChatWidget } from '@/components/chat';
+import { PRDWizardModal } from '@/components/admin/prd';
+import { quotesService } from '@/lib/supabase';
 import { BASE_PLANS, PACKS, URGENCY_OPTIONS, MAINTENANCE_OPTIONS, CLIENT_SECTORS, PROJECT_TYPES, TARGET_USERS_OPTIONS } from '@/types/pricing';
 import { formatCurrency } from '@/utils/formatters';
 import { downloadQuotePDF, downloadTechSpecPDF } from '@/lib/pdf-generator';
@@ -202,6 +204,7 @@ function PriceSidebar({
   onSave,
   onExportQuote,
   onExportTechSpec,
+  onGeneratePRD,
 }: {
   calculatedPrice: ReturnType<typeof useQuoteForm>['calculatedPrice'];
   isSaving: boolean;
@@ -209,6 +212,7 @@ function PriceSidebar({
   onSave: () => void;
   onExportQuote: () => void;
   onExportTechSpec: () => void;
+  onGeneratePRD: () => void;
 }) {
   return (
     <div className="sticky top-24 space-y-4">
@@ -292,7 +296,7 @@ function PriceSidebar({
           >
             Specs Techniques
           </Button>
-          <Button fullWidth variant="ghost" icon={<Sparkles className="w-4 h-4" />}>
+          <Button fullWidth variant="ghost" onClick={onGeneratePRD} icon={<Sparkles className="w-4 h-4" />}>
             Generer PRD
           </Button>
         </div>
@@ -324,6 +328,18 @@ function AdminFormContent() {
   } = useQuoteForm();
 
   const [isExporting, setIsExporting] = useState(false);
+  const [isPRDWizardOpen, setIsPRDWizardOpen] = useState(false);
+
+  // Save PRD content to the quote in DB when generated
+  const handlePRDGenerated = async (prdContent: string) => {
+    if (savedId) {
+      try {
+        await quotesService.update(savedId, { prd_content: prdContent });
+      } catch (err) {
+        console.error('Error saving PRD to quote:', err);
+      }
+    }
+  };
 
   const handleExportQuote = async () => {
     setIsExporting(true);
@@ -426,9 +442,35 @@ function AdminFormContent() {
               <span className="hidden sm:inline">Accueil</span>
             </Link>
             <div className="h-4 w-px bg-white/10" />
-            <h1 className="text-lg font-semibold text-white">Formulaire de Devis</h1>
+            <div className="flex items-center gap-2">
+              <MessageCircle size={18} className="text-blue-400" />
+              <h1 className="text-lg font-semibold text-white">Formulaire de Devis</h1>
+            </div>
+            <div className="h-4 w-px bg-white/10" />
+            <Link
+              href="/admin/knowledge"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <Database size={18} />
+              <span className="hidden sm:inline">Knowledge</span>
+            </Link>
+            <div className="h-4 w-px bg-white/10" />
+            <Link
+              href="/admin/pricing"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <DollarSign size={18} />
+              <span className="hidden sm:inline">Tarifs</span>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
+            <Link
+              href="/admin/pricing"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-green-400 hover:bg-green-500/20 transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+              Tarifs: synchro
+            </Link>
             <span className="text-sm text-gray-400">{user?.email}</span>
             <Button variant="ghost" size="sm" onClick={signOut} icon={<LogOut className="w-4 h-4" />}>
               Deconnexion
@@ -876,6 +918,7 @@ function AdminFormContent() {
                 onSave={saveQuote}
                 onExportQuote={handleExportQuote}
                 onExportTechSpec={handleExportTechSpec}
+                onGeneratePRD={() => setIsPRDWizardOpen(true)}
               />
             </div>
           </div>
@@ -904,6 +947,14 @@ function AdminFormContent() {
 
       {/* AI Chat Widget */}
       <ChatWidget />
+
+      {/* PRD Wizard Modal */}
+      <PRDWizardModal
+        isOpen={isPRDWizardOpen}
+        onClose={() => setIsPRDWizardOpen(false)}
+        quoteState={state}
+        onPRDGenerated={handlePRDGenerated}
+      />
     </div>
   );
 }

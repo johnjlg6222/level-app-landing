@@ -163,6 +163,103 @@ export function calculateQuotePrice(quoteState: {
 }
 
 /**
+ * Calculate quote price from DB-driven pricing.
+ * Reads packs, features, and config from the pricing tables.
+ * For future use - allows the closing form to switch to DB-driven pricing.
+ */
+export async function calculateQuotePriceFromDB(quoteState: {
+  selectedPlan: string;
+  selectedPacks: string[];
+  selectedFeatures: string[];
+  extraScreens: Record<string, number>;
+  discount: number;
+  urgency: string;
+  maintenance: string;
+}): Promise<{
+  subtotal: number;
+  discount: number;
+  urgencyMultiplier: number;
+  total: number;
+  monthlyMaintenance: number;
+  breakdown: PriceBreakdownItem[];
+}> {
+  const { pricingPacksService, pricingFeaturesService, pricingConfigService } = await import('@/lib/pricing-service');
+  const { PRICING_CONFIG_KEYS } = await import('@/types/admin-pricing');
+
+  const breakdown: PriceBreakdownItem[] = [];
+  let subtotal = 0;
+
+  // Fetch packs with features from DB
+  const { data: packsData } = await pricingPacksService.listWithFeatures();
+  const dbPacks = packsData || [];
+
+  // Selected plan = main pack
+  const planPack = dbPacks.find((p) => p.name.toLowerCase() === quoteState.selectedPlan || p.id === quoteState.selectedPlan);
+  if (planPack) {
+    subtotal += planPack.price;
+    breakdown.push({ label: `Plan ${planPack.name}`, amount: planPack.price });
+  }
+
+  // Selected packs (category packs)
+  quoteState.selectedPacks.forEach((packId) => {
+    const pack = dbPacks.find((p) => p.id === packId || p.name.toLowerCase() === packId);
+    if (pack) {
+      subtotal += pack.price;
+      breakdown.push({ label: pack.name, amount: pack.price });
+    }
+  });
+
+  // Individual features
+  const { data: allFeatures } = await pricingFeaturesService.list();
+  const featuresMap = new Map((allFeatures || []).map((f: { id: string; name: string; final_price: number }) => [f.id, f]));
+
+  quoteState.selectedFeatures.forEach((featureId) => {
+    const feature = featuresMap.get(featureId);
+    if (feature) {
+      subtotal += feature.final_price;
+      breakdown.push({ label: feature.name, amount: feature.final_price });
+    }
+  });
+
+  // Extra screens from DB config
+  const { data: screenConfig } = await pricingConfigService.getByKey(PRICING_CONFIG_KEYS.SCREEN_PRICES);
+  const screenPrices = (screenConfig?.value || {}) as Record<string, number>;
+
+  Object.entries(quoteState.extraScreens).forEach(([complexity, count]) => {
+    if (count > 0) {
+      const price = screenPrices[complexity] || 0;
+      const screenCost = price * count;
+      subtotal += screenCost;
+      breakdown.push({ label: `${count} ecrans ${complexity}`, amount: screenCost });
+    }
+  });
+
+  // Apply discount
+  const discountAmount = subtotal * (quoteState.discount / 100);
+  const afterDiscount = subtotal - discountAmount;
+
+  // Urgency from DB config
+  const { data: urgencyConfig } = await pricingConfigService.getByKey(PRICING_CONFIG_KEYS.URGENCY_MULTIPLIERS);
+  const urgencyData = (urgencyConfig?.value || {}) as Record<string, { multiplier: number }>;
+  const urgencyMultiplier = urgencyData[quoteState.urgency]?.multiplier || 1;
+  const total = Math.round(afterDiscount * urgencyMultiplier);
+
+  // Maintenance from DB config
+  const { data: maintenanceConfig } = await pricingConfigService.getByKey(PRICING_CONFIG_KEYS.MAINTENANCE_TIERS);
+  const maintenanceData = (maintenanceConfig?.value || {}) as Record<string, { monthlyPrice: number }>;
+  const monthlyMaintenance = maintenanceData[quoteState.maintenance]?.monthlyPrice || 0;
+
+  return {
+    subtotal,
+    discount: discountAmount,
+    urgencyMultiplier,
+    total,
+    monthlyMaintenance,
+    breakdown,
+  };
+}
+
+/**
  * Get price range text
  */
 export function getPriceRangeText(min: number, max: number): string {
