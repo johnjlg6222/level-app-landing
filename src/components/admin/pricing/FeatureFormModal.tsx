@@ -20,11 +20,13 @@ export function FeatureFormModal({ feature, defaultCategory, onSave, onClose }: 
   const [priceJohn, setPriceJohn] = useState(feature?.price_john || 0);
   const [priceHarouna, setPriceHarouna] = useState(feature?.price_harouna || 0);
   const [priceAndre, setPriceAndre] = useState(feature?.price_andre || 0);
+  const [priceChristophe, setPriceChristophe] = useState(feature?.price_christophe || 0);
   const [isActive, setIsActive] = useState(feature?.is_active ?? true);
   const [sortOrder, setSortOrder] = useState(feature?.sort_order || 0);
   const [isSaving, setIsSaving] = useState(false);
 
-  const finalPrice = Math.max(priceJohn, priceHarouna, priceAndre);
+  const nonZeroPrices = [priceJohn, priceHarouna, priceAndre, priceChristophe].filter(p => p > 0);
+  const finalPrice = nonZeroPrices.length > 0 ? Math.round(nonZeroPrices.reduce((a, b) => a + b, 0) / nonZeroPrices.length) : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +39,7 @@ export function FeatureFormModal({ feature, defaultCategory, onSave, onClose }: 
         price_john: priceJohn,
         price_harouna: priceHarouna,
         price_andre: priceAndre,
+        price_christophe: priceChristophe,
         sort_order: sortOrder,
         is_active: isActive,
       });
@@ -93,7 +96,7 @@ export function FeatureFormModal({ feature, defaultCategory, onSave, onClose }: 
             </select>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Input
               label="Prix John"
               type="number"
@@ -115,10 +118,17 @@ export function FeatureFormModal({ feature, defaultCategory, onSave, onClose }: 
               value={priceAndre}
               onChange={(e) => setPriceAndre(Number(e.target.value))}
             />
+            <Input
+              label="Prix Christophe"
+              type="number"
+              min={0}
+              value={priceChristophe}
+              onChange={(e) => setPriceChristophe(Number(e.target.value))}
+            />
           </div>
 
           <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-            <p className="text-sm text-gray-400">Prix final (max des 3)</p>
+            <p className="text-sm text-gray-400">Prix final (moy. non-zero)</p>
             <p className="text-xl font-bold text-blue-400">{finalPrice.toLocaleString('fr-FR')} EUR</p>
           </div>
 
