@@ -48,30 +48,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#050507] text-white`}
       >
-        {/* Hidden forms for Netlify build-time detection */}
-        <form name="calculator-lead" data-netlify="true" hidden>
-          <input type="hidden" name="form-name" value="calculator-lead" />
-          <input name="name" />
-          <input name="email" />
-          <input name="phone" />
-          <input name="company" />
-          <input name="screen_count" />
-          <input name="app_type" />
-          <input name="auth_level" />
-          <input name="payment_needs" />
-          <input name="additional_features" />
-          <input name="design_style" />
-          <input name="has_branding" />
-          <input name="estimated_price_min" />
-          <input name="estimated_price_max" />
-        </form>
-        <form name="contact" data-netlify="true" hidden>
-          <input type="hidden" name="form-name" value="contact" />
-          <input name="name" />
-          <input name="email" />
-          <input name="project" />
-        </form>
-
         <ErrorBoundary>
           <AuthProvider>{children}</AuthProvider>
         </ErrorBoundary>
