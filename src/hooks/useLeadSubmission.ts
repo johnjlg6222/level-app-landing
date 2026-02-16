@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { CalculatorState, calculatorStateToLead } from '@/types';
-import { leadsService } from '@/lib/supabase';
+import { submitNetlifyForm } from '@/lib/netlify-forms';
 
 export interface UseLeadSubmissionReturn {
   submitLead: (state: CalculatorState) => Promise<string | null>;
@@ -31,18 +31,34 @@ export function useLeadSubmission(): UseLeadSubmissionReturn {
 
     try {
       const leadData = calculatorStateToLead(state);
-      const { data, error: submitError } = await leadsService.create(leadData);
 
-      if (submitError) {
-        throw submitError;
+      // Flatten to string values for Netlify Forms
+      const formData: Record<string, string> = {
+        name: leadData.name,
+        email: leadData.email,
+        phone: leadData.phone,
+        company: leadData.company || '',
+        screen_count: String(leadData.screen_count),
+        app_type: leadData.app_type,
+        auth_level: leadData.auth_level,
+        payment_needs: leadData.payment_needs,
+        additional_features: leadData.additional_features.join(', '),
+        design_style: leadData.design_style,
+        has_branding: String(leadData.has_branding),
+        estimated_price_min: String(leadData.estimated_price_min),
+        estimated_price_max: String(leadData.estimated_price_max),
+      };
+
+      const result = await submitNetlifyForm('calculator-lead', formData);
+
+      if (!result.ok) {
+        throw new Error(result.error || 'Submission failed');
       }
 
-      if (data?.id) {
-        setLeadId(data.id);
-        return data.id;
-      }
-
-      return null;
+      // Generate a local UUID since we no longer have a DB-assigned ID
+      const localId = crypto.randomUUID();
+      setLeadId(localId);
+      return localId;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la soumission';
       setError(errorMessage);
@@ -55,41 +71,22 @@ export function useLeadSubmission(): UseLeadSubmissionReturn {
 
   const updateBooking = useCallback(
     async (
-      id: string,
-      bookingData: {
+      _id: string,
+      _bookingData: {
         scheduled: boolean;
         eventUri?: string;
         scheduledTime?: string;
       }
     ): Promise<boolean> => {
-      try {
-        const { error: updateError } = await leadsService.updateBooking(id, {
-          booking_scheduled: bookingData.scheduled,
-          booking_event_uri: bookingData.eventUri,
-          booking_scheduled_time: bookingData.scheduledTime,
-        });
-
-        if (updateError) {
-          throw updateError;
-        }
-
-        return true;
-      } catch (err) {
-        console.error('Booking update error:', err);
-        return false;
-      }
+      // No-op: Netlify Forms are immutable; iClosed handles bookings separately
+      return true;
     },
     []
   );
 
   const sendConfirmationEmail = useCallback(async (id: string): Promise<boolean> => {
     try {
-      // This would typically call a serverless function or API route
-      // to send the email via a service like SendGrid, Resend, etc.
       console.log('Sending confirmation email for lead:', id);
-
-      // For now, just return true as a placeholder
-      // In production, you'd call an API endpoint here
       return true;
     } catch (err) {
       console.error('Email sending error:', err);

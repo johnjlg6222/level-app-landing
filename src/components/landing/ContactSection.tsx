@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Clock } from 'lucide-react';
+import { Check, Clock, AlertCircle } from 'lucide-react';
+import { submitNetlifyForm } from '@/lib/netlify-forms';
 
 const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: string }> = ({
   children,
@@ -22,7 +23,11 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
 );
 
 export const ContactSection: React.FC = () => {
-  const [formState, setFormState] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [formState, setFormState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [project, setProject] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const scriptLoaded = useRef(false);
 
   // Load iClosed script
@@ -46,13 +51,22 @@ export const ContactSection: React.FC = () => {
     document.body.appendChild(script);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormState('submitting');
-    setTimeout(() => {
+    setErrorMsg('');
+
+    const result = await submitNetlifyForm('contact', { name, email, project });
+
+    if (result.ok) {
       setFormState('success');
-      (e.target as HTMLFormElement).reset();
-    }, 2000);
+      setName('');
+      setEmail('');
+      setProject('');
+    } else {
+      setFormState('error');
+      setErrorMsg(result.error || 'Une erreur est survenue');
+    }
   };
 
   return (
@@ -70,7 +84,10 @@ export const ContactSection: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-sm text-gray-400">Nom</label>
                   <input
+                    name="name"
                     required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="Votre nom"
                   />
@@ -78,8 +95,11 @@ export const ContactSection: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-sm text-gray-400">Email</label>
                   <input
+                    name="email"
                     required
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="hello@..."
                   />
@@ -88,12 +108,22 @@ export const ContactSection: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm text-gray-400">Projet</label>
                 <textarea
+                  name="project"
                   required
                   rows={4}
+                  value={project}
+                  onChange={(e) => setProject(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none transition-colors"
                   placeholder="Décrivez votre idée..."
                 />
               </div>
+
+              {formState === 'error' && (
+                <div className="flex items-center gap-2 text-red-400 text-sm">
+                  <AlertCircle size={16} />
+                  {errorMsg}
+                </div>
+              )}
 
               <button
                 disabled={formState === 'submitting'}

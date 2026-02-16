@@ -1,9 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User } from '@supabase/supabase-js';
-import { getSupabase, checkIsAdmin, getAdminRole } from '@/lib/supabase';
-import { AuthContextType, AdminRole } from '@/types/shared';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { AuthContextType, AdminRole, User } from '@/types/shared';
 
 // Hardcoded admin bypass credentials
 const ADMIN_BYPASS_EMAIL = 'admin@level.app';
@@ -46,11 +44,8 @@ const safeSessionStorage = {
 const createBypassAdminUser = (): User => ({
   id: 'bypass-admin-user-id',
   email: ADMIN_BYPASS_EMAIL,
-  app_metadata: {},
   user_metadata: { is_bypass_admin: true },
-  aud: 'authenticated',
-  created_at: new Date().toISOString(),
-}) as User;
+});
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -60,91 +55,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<AdminRole>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check admin status and role
-  const checkAdminStatus = useCallback(async (userId: string) => {
-    const adminStatus = await checkIsAdmin(userId);
-    setIsAdmin(adminStatus);
-    if (adminStatus) {
-      const adminRole = await getAdminRole(userId);
-      setRole(adminRole);
-    } else {
-      setRole(null);
+  // Check for existing bypass session on mount
+  useEffect(() => {
+    const bypassSession = safeSessionStorage.getItem(BYPASS_ADMIN_SESSION_KEY);
+    if (bypassSession === 'true') {
+      setUser(createBypassAdminUser());
+      setIsAdmin(true);
+      setRole('super_admin');
     }
+    setIsLoading(false);
   }, []);
 
-  // Handle auth state changes
-  useEffect(() => {
-    const supabase = getSupabase();
-
-    // If Supabase is not configured, just set loading to false
-    if (!supabase) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        // Check for bypass admin session first
-        const bypassSession = safeSessionStorage.getItem(BYPASS_ADMIN_SESSION_KEY);
-        if (bypassSession === 'true') {
-          setUser(createBypassAdminUser());
-          setIsAdmin(true);
-          setRole('super_admin');
-          setIsLoading(false);
-          return;
-        }
-
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (session?.user) {
-          setUser(session.user);
-          await checkAdminStatus(session.user.id);
-        }
-      } catch (error) {
-        console.error('Error getting session:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Don't override bypass admin session
-      const bypassSession = safeSessionStorage.getItem(BYPASS_ADMIN_SESSION_KEY);
-      if (bypassSession === 'true') {
-        return;
-      }
-
-      if (session?.user) {
-        setUser(session.user);
-        await checkAdminStatus(session.user.id);
-      } else {
-        setUser(null);
-        setIsAdmin(false);
-        setRole(null);
-      }
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [checkAdminStatus]);
-
-  // Sign in with email/password
+  // Sign in with email/password (bypass only)
   const signIn = async (email: string, password: string) => {
-    // Normalize inputs for comparison
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedPassword = password.trim();
 
-    // Check for admin bypass credentials first
     if (normalizedEmail === ADMIN_BYPASS_EMAIL && normalizedPassword === ADMIN_BYPASS_PASSWORD) {
       const bypassUser = createBypassAdminUser();
       setUser(bypassUser);
@@ -154,41 +80,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null };
     }
 
-    const supabase = getSupabase();
-    if (!supabase) {
-      return { error: new Error('Supabase not configured') };
-    }
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        return { error };
-      }
-
-      if (data.user) {
-        setUser(data.user);
-        await checkAdminStatus(data.user.id);
-      }
-
-      return { error: null };
-    } catch (error) {
-      return { error: error as Error };
-    }
+    return { error: new Error('Identifiants invalides') };
   };
 
   // Sign out
   const signOut = async () => {
-    // Clear bypass session
     safeSessionStorage.removeItem(BYPASS_ADMIN_SESSION_KEY);
-
-    const supabase = getSupabase();
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
     setUser(null);
     setIsAdmin(false);
     setRole(null);

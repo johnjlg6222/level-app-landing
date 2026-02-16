@@ -1,6 +1,5 @@
 // Build system prompt from knowledge base entries
 
-import { getSupabase } from './supabase';
 import type {
   KnowledgeEntry,
   KnowledgeSection,
@@ -15,50 +14,17 @@ import type {
 } from '@/types/knowledge';
 
 /**
- * Fetch all active knowledge entries from Supabase
+ * Fetch all active knowledge entries (stub — returns empty, falls back to local knowledge)
  */
 export async function fetchKnowledgeEntries(): Promise<KnowledgeEntry[]> {
-  const supabase = getSupabase();
-  if (!supabase) {
-    console.warn('Supabase not configured, using fallback knowledge');
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from('chatbot_knowledge')
-    .select('*')
-    .eq('is_active', true)
-    .order('priority', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching knowledge:', error);
-    return [];
-  }
-
-  return data || [];
+  return [];
 }
 
 /**
- * Fetch all active knowledge documents from Supabase
+ * Fetch all active knowledge documents (stub — returns empty)
  */
 export async function fetchKnowledgeDocuments(): Promise<KnowledgeDocument[]> {
-  const supabase = getSupabase();
-  if (!supabase) {
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from('knowledge_documents')
-    .select('*')
-    .eq('status', 'active')
-    .order('section', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching knowledge documents:', error);
-    return [];
-  }
-
-  return data || [];
+  return [];
 }
 
 /**
@@ -88,11 +54,10 @@ function formatDocumentsForSection(
 }
 
 /**
- * Fetch system prompt configuration
+ * Fetch system prompt configuration (returns default config)
  */
 export async function fetchSystemPromptConfig(): Promise<SystemPromptConfig> {
-  const supabase = getSupabase();
-  const defaultConfig: SystemPromptConfig = {
+  return {
     prompt: `Tu es l'assistant virtuel de Level App, une agence de développement d'applications mobiles et web.
 Tu aides les prospects à comprendre nos services, tarifs et processus.
 Sois professionnel, amical et précis. Réponds en français.
@@ -101,22 +66,6 @@ Utilise les informations ci-dessous pour répondre aux questions.`,
     language: 'fr',
     tone: 'friendly',
   };
-
-  if (!supabase) {
-    return defaultConfig;
-  }
-
-  const { data, error } = await supabase
-    .from('chatbot_config')
-    .select('*')
-    .eq('key', 'system_prompt')
-    .single();
-
-  if (error || !data) {
-    return defaultConfig;
-  }
-
-  return data.value as SystemPromptConfig;
 }
 
 /**

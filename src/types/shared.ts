@@ -1,4 +1,9 @@
-import { User } from '@supabase/supabase-js';
+// Local User type (replaces @supabase/supabase-js User)
+export interface User {
+  id: string;
+  email: string;
+  user_metadata: Record<string, unknown>;
+}
 
 // Auth types
 export type AdminRole = 'admin' | 'super_admin' | null;

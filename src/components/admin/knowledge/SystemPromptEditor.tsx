@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, Loader2, RefreshCw } from 'lucide-react';
-import { getSupabase } from '@/lib/supabase';
+import React, { useState } from 'react';
+import { Save, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { SystemPromptConfig } from '@/types/knowledge';
 
 interface SystemPromptEditorProps {
@@ -11,63 +10,26 @@ interface SystemPromptEditorProps {
 
 export function SystemPromptEditor({ onPreview }: SystemPromptEditorProps) {
   const [config, setConfig] = useState<SystemPromptConfig>({
-    prompt: '',
+    prompt: `Tu es l'assistant virtuel de Level App, une agence de développement d'applications mobiles et web.
+Tu aides les prospects à comprendre nos services, tarifs et processus.
+Sois professionnel, amical et précis. Réponds en français.
+Utilise les informations ci-dessous pour répondre aux questions.`,
     personality: 'professional',
     language: 'fr',
     tone: 'friendly',
   });
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [previewContent, setPreviewContent] = useState<string>('');
   const [estimatedTokens, setEstimatedTokens] = useState<number>(0);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Fetch config on mount
-  useEffect(() => {
-    fetchConfig();
-  }, []);
-
-  const fetchConfig = async () => {
-    const supabase = getSupabase();
-    if (!supabase) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('chatbot_config')
-        .select('*')
-        .eq('key', 'system_prompt')
-        .single();
-
-      if (!error && data) {
-        setConfig(data.value as SystemPromptConfig);
-      }
-    } catch (err) {
-      console.error('Error fetching config:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSave = async () => {
-    const supabase = getSupabase();
-    if (!supabase) return;
-
     setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from('chatbot_config')
-        .update({ value: config })
-        .eq('key', 'system_prompt');
-
-      if (error) throw error;
-      setHasChanges(false);
-    } catch (err) {
-      console.error('Error saving config:', err);
-      alert('Failed to save configuration');
-    } finally {
-      setIsSaving(false);
-    }
+    // Stub: Supabase removed, saving is unavailable
+    console.warn('SystemPromptEditor: save disabled (Supabase removed)');
+    alert('Sauvegarde indisponible (base de données déconnectée)');
+    setIsSaving(false);
   };
 
   const handlePreview = async () => {
@@ -88,16 +50,6 @@ export function SystemPromptEditor({ onPreview }: SystemPromptEditorProps) {
     setConfig((prev) => ({ ...prev, ...updates }));
     setHasChanges(true);
   };
-
-  if (isLoading) {
-    return (
-      <div className="bg-[#0F1115]/60 backdrop-blur-md rounded-xl border border-white/10 p-6">
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-[#0F1115]/60 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden">

@@ -3,7 +3,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { QuoteData } from '@/types/leads';
 import { calculateQuotePrice } from '@/lib/pricing-config';
-import { quotesService } from '@/lib/supabase';
 
 export interface QuoteFormState {
   // Client info
@@ -280,35 +279,12 @@ export function useQuoteForm() {
     };
   }, [state, calculatedPrice]);
 
-  // Save quote
+  // Save quote (stub — closing wizard uses local data, not this)
   const saveQuote = useCallback(async () => {
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      const quoteData = toQuoteData();
-
-      if (savedId) {
-        // Update existing quote
-        const { data, error: updateError } = await quotesService.update(savedId, quoteData);
-        if (updateError) throw updateError;
-        return data;
-      } else {
-        // Create new quote
-        const { data, error: createError } = await quotesService.create(quoteData);
-        if (createError) throw createError;
-        if (data) {
-          setSavedId(data.id);
-        }
-        return data;
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde');
-      return null;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [savedId, toQuoteData]);
+    console.warn('saveQuote: Supabase removed. Quote saving is disabled.');
+    setIsSaving(false);
+    return null;
+  }, []);
 
   // Reset form
   const resetForm = useCallback(() => {
